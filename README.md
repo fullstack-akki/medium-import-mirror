@@ -2,6 +2,26 @@
 
 Generate clean, static, script-free HTML mirrors of blog posts so Medium's importer (medium.com/p/import) can parse them — even when the original blog is a JavaScript-rendered SPA that Medium's parser cannot read.
 
+## Quick start — 3 steps, that's it
+
+```bash
+git clone https://github.com/YOUR_USERNAME/medium-import-mirror.git
+cd medium-import-mirror
+pip install -r requirements.txt
+./publish.sh "https://example.com/blog/my-original-post" "My Original Post Title" "2026-11-14"
+```
+
+That one command builds the mirror, pushes it to GitHub, and prints the link.
+Then:
+
+1. Paste the printed link into https://medium.com/p/import
+2. In Medium, check More settings → Advanced Settings → Canonical link is your **blog URL** (not the github.io URL)
+3. Add tags, publish. Done.
+
+One-time setup (once, never again): GitHub repo → Settings → Pages → Source: **Deploy from a branch**, Branch: **main**, Folder: **/ (root)**. Wait ~1 minute after the first push for Pages to go live.
+
+After a story is published, the mirror file is only a bridge — you can replace it with a tiny redirect to your blog, or delete it. Medium keeps its own copy of the story, so deleting the mirror never breaks the published story. (Do it **after** the import, never before — if Medium's importer follows a redirect to your JS blog it will fail.)
+
 ## What problem does this solve?
 
 Medium's import tool (medium.com/p/import) uses a third-party parser that does not execute JavaScript. If your blog is a React / Vite single-page app (SPA), the initial HTML response contains only an empty `<div id="root"></div>` shell, so the importer fails with "server stopped responding" or "could not be imported", even though the page loads fine in a browser.
@@ -90,13 +110,13 @@ python mirror.py \
 
 The script resolves all relative image and anchor URLs against `--url`, converts HTML `<table>` elements into bulleted lists (`<ul><li>...</li></ul>`), strips all `<script>`, `<style>`, `<svg>`, and tracking tags, and outputs a single static HTML file in `mirrors/`.
 
-## Enabling GitHub Pages (Manual Steps Required)
+## Enabling GitHub Pages (Manual Steps Required — once only)
 
 1. Push this repository to a public GitHub repository on the `main` branch.
 2. On GitHub, open your repository and click Settings in the top navigation bar.
 3. In the left sidebar under "Code and automation", click Pages.
-4. Under Build and deployment -> Source, change the dropdown from `Deploy from a branch` to `GitHub Actions`.
-5. Commit and push your generated file inside `mirrors/`:
+4. Under Build and deployment -> Source, choose `Deploy from a branch`, Branch `main`, Folder `/ (root)`, then Save.
+5. Commit and push your generated file inside `mirrors/` (or just run `./publish.sh`, which does this for you):
 
 ```bash
 git add mirrors/my-original-post.html
@@ -104,12 +124,12 @@ git commit -m "Add mirror for my-original-post"
 git push origin main
 ```
 
-6. Open the Actions tab in your GitHub repository and wait (~30 seconds) for the Deploy Mirrors to GitHub Pages workflow to finish.
+6. Wait ~1 minute for Pages to build.
 
 Your static mirror is now live at:
 
 ```
-https://YOUR_GITHUB_USERNAME.github.io/medium-import-mirror/my-original-post.html
+https://YOUR_GITHUB_USERNAME.github.io/medium-import-mirror/mirrors/my-original-post.html
 ```
 
 ## Importing Into Medium
@@ -118,7 +138,7 @@ https://YOUR_GITHUB_USERNAME.github.io/medium-import-mirror/my-original-post.htm
 2. Paste your GitHub Pages mirror URL (not your SPA URL):
 
 ```
-https://YOUR_GITHUB_USERNAME.github.io/medium-import-mirror/my-original-post.html
+https://YOUR_GITHUB_USERNAME.github.io/medium-import-mirror/mirrors/my-original-post.html
 ```
 
 3. Click Import.
